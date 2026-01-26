@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OCR Result</title>
+    <style>
+      body{font-family: Arial, sans-serif;max-width:800px;margin:24px auto;padding:0 16px}
+      .card{border:1px solid #ddd;padding:20px;border-radius:8px}
+      pre{white-space:pre-wrap;background:#f7f7f7;padding:12px;border-radius:6px}
+    </style>
+  </head>
+  <body>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul style="padding:8px 12px;background:#fff3f3;border:1px solid #f2c2c2;border-radius:6px;color:#7a0000;list-style:none;">
+        {% for m in messages %}
+          <li>{{ m }}</li>
+        {% endfor %}
+        </ul>
+        <br>
+      {% endif %}
+    {% endwith %}
+    <h1>OCR Result</h1>
+    <div class="card">
+      <p><strong>Uploaded file:</strong> <a href="/uploads/{{ filename }}">{{ filename }}</a></p>
+      <p><strong>Language:</strong> {{ languages[lang] }} ({{ lang }})</p>
+      <h3>Extracted Text</h3>
+      <pre>{{ text }}</pre>
+      {% if txt_filename %}
+      <p>
+        <a href="{{ url_for('download_file', filename=txt_filename) }}" style="display:inline-block;padding:8px 12px;background:#007bff;color:#fff;border-radius:6px;text-decoration:none;">Download Text</a>
+      </p>
+      {% endif %}
+      <p><a href="/">Back</a></p>
+    </div>
+  </body>
+</html>

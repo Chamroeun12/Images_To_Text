@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+  <title>Image to Text</title>
+  <style>
+    /* download Button*/
+    .download-btn {
+  background-color: #10b981;   /* Emerald green */
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;                 /* space between icon and text */
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.download-btn:hover {
+  background-color: #059669;   /* Darker green */
+  transform: translateY(-2px); /* subtle lift */
+}
+
+.download-btn:active {
+  transform: translateY(0);    /* reset on click */
+}
+
+
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 0 16px
+    }
+
+    .card {
+      border: 1px solid #ddd;
+      padding: 20px;
+      border-radius: 8px
+    }
+
+    input[type=file] {
+      display: block;
+      margin: 12px 0
+    }
+
+    pre {
+      white-space: pre-wrap;
+      background: #f7f7f7;
+      padding: 12px;
+      border-radius: 6px
+    }
+
+    /* button */
+    .btn {
+      background-color: #06a134;
+      /* Indigo shade */
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      /* Rounded corners */
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn:hover {
+      background-color: #38caad;
+      /* Darker indigo */
+      transform: translateY(-2px);
+      /* Lift effect */
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      /* Reset on click */
+    }
+
+    .file-input {
+    display: none; /* hide the ugly default input */
+  }
+
+  .center {
+    display: flex;
+    justify-content: center; /* horizontal center */
+    /* vertical center */
+    /* align-items: center;      */
+             /* full screen height */
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-family: 'Oswald', sans-serif;
+    font-size: x-large;
+  }
+
+  .file-label {
+    display: inline-block;
+    background-color: #4f46e5; /* Indigo */
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  .file-label:hover {
+    background-color: #4338ca; /* Darker indigo */
+    transform: translateY(-2px);
+  }
+
+  .file-label:active {
+    transform: translateY(0);
+  }
+  </style>
+</head>
+
+<body class="">
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  <ul
+    style="padding:8px 12px;background:#fff3f3;border:1px solid #f2c2c2;border-radius:6px;color:#7a0000;list-style:none;">
+    {% for m in messages %}
+    <li>{{ m }}</li>
+    {% endfor %}
+  </ul>
+  <br>
+  {% endif %}
+  {% endwith %}
+  <h1>Image to Text</h1>
+  <div class="card">
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <label class="center">Select an image (png, jpg, tiff, bmp, gif):</label>
+      <input type="file" name="image" accept="image/*" id="file" class="file-input"> <label for="file" class="file-label">Upload Image</label>
+      <select name="lang" class="btn">
+        <!-- <option value="" Selected>Choose Language</option> -->
+        {% for code, label in languages.items() %}
+        <option value="{{ code }}" {% if last_lang==code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <!-- <p style="font-size:0.9em;color:#555">Tip: For Khmer, ensure Khmer language data is installed in Tesseract (see README).</p> -->
+      <button type="submit" class="btn">Upload and Extract Text</button>
+    </form>
+    {% if last_txt %}
+    <hr>
+    <p><strong>Last extracted text:</strong></p>
+    <p>
+      <a 
+      class="download-btn"
+      href="{{ url_for('uploaded_file', filename=last_txt) }}"
+        >Download Last Text</a>
+    </p>
+    {% endif %}
+  </div>
+
+  <!-- <script>
+    const fileInput = document.getElementById('file');
+fileInput.addEventListener('change', () => {
+  alert(`Selected file: ${fileInput.files[0].name}`);
+});
+
+  </script> -->
+</body>
+
+</html>
