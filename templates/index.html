@@ -1,176 +1,471 @@
 <!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Image to Text (OCR)</title>
 
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- <script src="https://cdn.tailwindcss.com"></script> -->
-  <title>Image to Text</title>
-  <style>
-    /* download Button*/
-    .download-btn {
-  background-color: #10b981;   /* Emerald green */
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;                 /* space between icon and text */
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
+    <style>
+    :root{
+      --bg:#0b1220;
+      --card:#0f1a2e;
+      --muted:#93a4c7;
+      --text:#eaf0ff;
+      --line:rgba(255,255,255,.08);
+      --accent:#5b8cff;
+      --accent2:#22c55e;
+      --danger:#ef4444;
+      --shadow: 0 18px 40px rgba(0,0,0,.35);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue";
+      background: radial-gradient(1200px 500px at 20% 0%, rgba(91,140,255,.25), transparent 60%),
+                  radial-gradient(900px 500px at 80% 10%, rgba(34,197,94,.18), transparent 60%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+    }
+    .wrap{max-width:1040px; margin:44px auto; padding:0 16px}
+    .top{
+      display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;
+      margin-bottom:18px;
+    }
+    h1{margin:0; font-size:28px; letter-spacing:.2px}
+    .sub{margin:6px 0 0; color:var(--muted); font-size:14px; line-height:1.5}
+    .badge{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:8px 12px; border:1px solid var(--line); border-radius:999px;
+      background: rgba(255,255,255,.03);
+      color:var(--muted); font-size:13px;
+    }
+    .grid{display:grid; grid-template-columns: 1fr 1fr; gap:18px}
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
 
-.download-btn:hover {
-  background-color: #059669;   /* Darker green */
-  transform: translateY(-2px); /* subtle lift */
-}
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card-h{padding:16px 16px 0}
+    .card-title{font-weight:650; font-size:15px}
+    .card-desc{color:var(--muted); font-size:13px; margin-top:4px}
+    .card-b{padding:16px}
 
-.download-btn:active {
-  transform: translateY(0);    /* reset on click */
-}
+    .drop{
+      border:1.5px dashed rgba(255,255,255,.18);
+      border-radius:16px;
+      padding:18px;
+      background: rgba(255,255,255,.02);
+      transition:.15s;
+    }
+    .drop.dragover{border-color:rgba(91,140,255,.8); background: rgba(91,140,255,.08)}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
 
+    .btn{
+      appearance:none;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color:var(--text);
+      border-radius:12px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:14px;
+      transition:.15s;
+      display:inline-flex; gap:8px; align-items:center;
+    }
+    .btn:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.18)}
+    .btn.primary{background: rgba(91,140,255,.18); border-color: rgba(91,140,255,.35)}
+    .btn.primary:hover{background: rgba(91,140,255,.25)}
+    .btn.good{background: rgba(34,197,94,.14); border-color: rgba(34,197,94,.35)}
+    .btn.danger{background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.35)}
+    .btn:disabled{opacity:.55; cursor:not-allowed; transform:none}
 
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 720px;
-      margin: 40px auto;
-      padding: 0 16px
+    input[type="file"]{display:none}
+    select{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color:var(--text);
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:600;
+      font-size:14px;
+      outline:none;
+    }
+    option{color:#111}
+
+    .hint{color:var(--muted); font-size:13px; margin:10px 0 0; line-height:1.45}
+
+    .file-pill{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      margin-top:12px;
+      color:var(--muted);
+      font-size:13px;
     }
 
-    .card {
-      border: 1px solid #ddd;
-      padding: 20px;
-      border-radius: 8px
+    .preview{
+      width:100%;
+      aspect-ratio: 16/10;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      display:flex; align-items:center; justify-content:center;
+      overflow:hidden;
+    }
+    .preview img{width:100%; height:100%; object-fit:contain; background:#0a1222}
+    .empty{color:var(--muted); font-size:13px; text-align:center; padding:26px}
+
+    textarea{
+      width:100%;
+      min-height:300px;
+      resize:vertical;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.2);
+      color:var(--text);
+      padding:14px;
+      font-size:14px;
+      line-height:1.55;
+      outline:none;
+    }
+    textarea:focus{border-color: rgba(91,140,255,.65)}
+
+    .meta{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+      margin-top:10px;
+      color:var(--muted);
+      font-size:13px;
     }
 
-    input[type=file] {
-      display: block;
-      margin: 12px 0
+    .status{
+      margin-top:12px;
+      display:none;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      color:var(--muted);
+      font-size:13px;
     }
+    .status.show{display:block}
+    .status.good{border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.08); color:#baf7cd}
+    .status.bad{border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.08); color:#ffd0d0}
 
-    pre {
-      white-space: pre-wrap;
-      background: #f7f7f7;
-      padding: 12px;
-      border-radius: 6px
+    .spinner{
+      width:14px; height:14px; border-radius:999px;
+      border:2px solid rgba(255,255,255,.18);
+      border-top-color: rgba(91,140,255,.85);
+      animation: spin 1s linear infinite;
+      display:inline-block;
+      vertical-align:middle;
+      margin-right:8px;
     }
+    @keyframes spin{to{transform: rotate(360deg)}}
 
-    /* button */
-    .btn {
-      background-color: #06a134;
-      /* Indigo shade */
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 0.5rem;
-      /* Rounded corners */
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      transition: background-color 0.3s ease, transform 0.2s ease;
-    }
-
-    .btn:hover {
-      background-color: #38caad;
-      /* Darker indigo */
-      transform: translateY(-2px);
-      /* Lift effect */
-    }
-
-    .btn:active {
-      transform: translateY(0);
-      /* Reset on click */
-    }
-
-    .file-input {
-    display: none; /* hide the ugly default input */
-  }
-
-  .center {
-    display: flex;
-    justify-content: center; /* horizontal center */
-    /* vertical center */
-    /* align-items: center;      */
-             /* full screen height */
-    margin-top: 16px;
-    margin-bottom: 8px;
-    font-family: 'Oswald', sans-serif;
-    font-size: x-large;
-  }
-
-  .file-label {
-    display: inline-block;
-    background-color: #4f46e5; /* Indigo */
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-  }
-
-  .file-label:hover {
-    background-color: #4338ca; /* Darker indigo */
-    transform: translateY(-2px);
-  }
-
-  .file-label:active {
-    transform: translateY(0);
-  }
+    footer{margin-top:16px; color:var(--muted); font-size:12px; opacity:.9}
+    code{color:#c7d2fe}
   </style>
-</head>
+  </head>
 
-<body class="">
-  {% with messages = get_flashed_messages() %}
-  {% if messages %}
-  <ul
-    style="padding:8px 12px;background:#fff3f3;border:1px solid #f2c2c2;border-radius:6px;color:#7a0000;list-style:none;">
-    {% for m in messages %}
-    <li>{{ m }}</li>
-    {% endfor %}
-  </ul>
-  <br>
-  {% endif %}
-  {% endwith %}
-  <h1>Image to Text</h1>
-  <div class="card">
-    <form action="/upload" method="post" enctype="multipart/form-data">
-      <label class="center">Select an image (png, jpg, tiff, bmp, gif):</label>
-      <input type="file" name="image" accept="image/*" id="file" class="file-input"> <label for="file" class="file-label">Upload Image</label>
-      <select name="lang" class="btn">
-        <!-- <option value="" Selected>Choose Language</option> -->
-        {% for code, label in languages.items() %}
-        <option value="{{ code }}" {% if last_lang==code %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-      <!-- <p style="font-size:0.9em;color:#555">Tip: For Khmer, ensure Khmer language data is installed in Tesseract (see README).</p> -->
-      <button type="submit" class="btn">Upload and Extract Text</button>
-    </form>
-    {% if last_txt %}
-    <hr>
-    <p><strong>Last extracted text:</strong></p>
-    <p>
-      <a 
-      class="download-btn"
-      href="{{ url_for('uploaded_file', filename=last_txt) }}"
-        >Download Last Text</a>
-    </p>
-    {% endif %}
-  </div>
+  <body>
+    <div class="wrap">
+      <div class="top">
+        <div>
+          <h1>Image to Text (OCR)</h1>
+          <p class="sub">Upload an image, choose language, and extract text —
+            all on one page.</p>
+        </div>
+        <div class="badge">✅ Single Page • Better UX/UI</div>
+      </div>
 
-  <!-- <script>
-    const fileInput = document.getElementById('file');
-fileInput.addEventListener('change', () => {
-  alert(`Selected file: ${fileInput.files[0].name}`);
-});
+      <div class="grid">
+        <!-- LEFT: Upload -->
+        <div class="card">
+          <div class="card-h">
+            <div class="card-title">1) Upload Image</div>
+            <div class="card-desc">PNG / JPG / JPEG / BMP / TIFF / GIF</div>
+          </div>
 
-  </script> -->
-</body>
+          <div class="card-b">
+            <form id="uploadForm" action="/upload" method="post"
+              enctype="multipart/form-data">
+              <div id="drop" class="drop">
+                <div class="row">
+                  <label class="btn primary" for="fileInput">📁 Choose
+                    Image</label>
 
+                  <!-- keep selected language from Flask session -->
+                  <select name="lang" id="langSelect" title="OCR Language">
+                    <option value="eng" {% if last_lang == 'eng' %}selected{%
+                      endif %}>🌍 English</option>
+                    <option value="khm" {% if last_lang == 'khm' %}selected{%
+                      endif %}>🇰🇭 Khmer</option>
+                  </select>
+
+                  <button class="btn" type="button" id="clearBtn">🧹
+                    Clear</button>
+                  <button class="btn good" type="submit" id="extractBtn">⚡
+                    Extract</button>
+                </div>
+
+                <input id="fileInput" name="image" type="file" accept="image/*"
+                  required />
+
+                <p class="hint">
+                  Tip: You can <b>drag & drop</b> an image here. For best OCR,
+                  use clear images with good lighting.
+                </p>
+
+                <div id="filePill" class="file-pill" style="display:none;">
+                  <span id="fileName">—</span>
+                  <span id="fileSize">—</span>
+                </div>
+
+                <div id="status" class="status">
+                  <span id="statusText"></span>
+                </div>
+              </div>
+            </form>
+
+            <div style="margin-top:14px" class="preview" id="previewBox">
+              <div class="empty" id="previewEmpty">No image selected yet</div>
+              <img id="previewImg" alt="Preview" style="display:none;" />
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Output -->
+        <div class="card">
+          <div class="card-h">
+            <div class="card-title">2) Extracted Text</div>
+            <div class="card-desc">Copy or download the result</div>
+          </div>
+
+          <div class="card-b">
+            <!-- optional: show last_text from session -->
+            <textarea id="output"
+              placeholder="Your extracted text will appear here..."
+              readonly>{{ last_text or '' }}</textarea>
+
+            <div class="meta">
+              <div id="charCount">0 characters</div>
+              <div class="row">
+                <button class="btn" type="button" id="copyBtn">📋 Copy</button>
+                <button class="btn" type="button" id="downloadBtn">⬇️ Download
+                  .txt</button>
+              </div>
+            </div>
+
+            <footer>
+              <!-- This UI uses <code>fetch()</code> and expects JSON from
+              <code>/upload</code>. -->
+            </footer>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    const fileInput = document.getElementById('fileInput');
+    const drop = document.getElementById('drop');
+    const previewImg = document.getElementById('previewImg');
+    const previewEmpty = document.getElementById('previewEmpty');
+    const filePill = document.getElementById('filePill');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const status = document.getElementById('status');
+    const statusText = document.getElementById('statusText');
+    const output = document.getElementById('output');
+    const charCount = document.getElementById('charCount');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const uploadForm = document.getElementById('uploadForm');
+    const extractBtn = document.getElementById('extractBtn');
+    const langSelect = document.getElementById('langSelect');
+
+    function showStatus(type, html){
+      status.className = 'status show' + (type ? (' ' + type) : '');
+      statusText.innerHTML = html;
+    }
+
+    function hideStatus(){
+      status.className = 'status';
+      statusText.textContent = '';
+    }
+
+    function humanSize(bytes){
+      const units = ['B','KB','MB','GB'];
+      let i=0, n=bytes;
+      while(n >= 1024 && i < units.length-1){ n/=1024; i++; }
+      return `${n.toFixed(i===0?0:1)} ${units[i]}`;
+    }
+
+    function updateCount(){
+      charCount.textContent = `${output.value.length} characters`;
+    }
+
+    function updatePreview(file){
+      if(!file) return;
+
+      filePill.style.display = 'flex';
+      fileName.textContent = file.name;
+      fileSize.textContent = humanSize(file.size);
+
+      const url = URL.createObjectURL(file);
+      previewImg.src = url;
+      previewImg.style.display = 'block';
+      previewEmpty.style.display = 'none';
+
+      hideStatus();
+      showStatus('', 'Ready to extract.');
+    }
+
+    function clearAll(){
+      fileInput.value = '';
+      previewImg.src = '';
+      previewImg.style.display = 'none';
+      previewEmpty.style.display = 'block';
+      filePill.style.display = 'none';
+
+      output.value = '';
+      updateCount();
+
+      hideStatus();
+      showStatus('', 'Choose an image to start.');
+    }
+
+    // Drag & drop events
+    ['dragenter','dragover'].forEach(evt => {
+      drop.addEventListener(evt, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        drop.classList.add('dragover');
+      });
+    });
+
+    ['dragleave','drop'].forEach(evt => {
+      drop.addEventListener(evt, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        drop.classList.remove('dragover');
+      });
+    });
+
+    drop.addEventListener('drop', (e) => {
+      const f = e.dataTransfer.files && e.dataTransfer.files[0];
+      if(!f) return;
+      fileInput.files = e.dataTransfer.files;
+      updatePreview(f);
+    });
+
+    fileInput.addEventListener('change', () => {
+      const f = fileInput.files[0];
+      if(!f) return;
+      updatePreview(f);
+    });
+
+    clearBtn.addEventListener('click', clearAll);
+
+    copyBtn.addEventListener('click', async () => {
+      const text = output.value.trim();
+      if(!text){
+        showStatus('bad', '❌ Nothing to copy yet.');
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      showStatus('good', '✅ Copied to clipboard!');
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const text = output.value.trim();
+      if(!text){
+        showStatus('bad', '❌ Nothing to download yet.');
+        return;
+      }
+      const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'extracted_text.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showStatus('good', '✅ Downloaded extracted_text.txt');
+    });
+
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const f = fileInput.files[0];
+      if(!f){
+        showStatus('bad', '❌ Please choose an image first.');
+        return;
+      }
+
+      extractBtn.disabled = true;
+      showStatus('', `<span class="spinner"></span>Extracting text…`);
+
+      try{
+        const fd = new FormData(uploadForm);
+        fd.set('lang', langSelect.value);
+
+        const res = await fetch(uploadForm.action, {
+          method: 'POST',
+          body: fd,
+          headers: {
+            'X-Requested-With': 'fetch',
+            'Accept': 'application/json'
+          }
+        });
+
+        const data = await res.json().catch(() => null);
+
+        if(!res.ok || !data){
+          showStatus('bad', '❌ Server error. Please try again.');
+          return;
+        }
+
+        if(!data.ok){
+          showStatus('bad', `❌ ${data.error || 'OCR failed.'}`);
+          return;
+        }
+
+        const text = (data.text || '').trim();
+        output.value = text;
+        updateCount();
+
+        // ✅ NEW: show backend warning if present (e.g., Khmer data missing)
+        if(data.warning){
+          showStatus('bad', `❌ ${data.warning}`);
+        } else if(text){
+          showStatus('good', '✅ Done! Text extracted successfully.');
+        } else {
+          showStatus('bad', '❌ No text detected. Try a clearer image or correct language.');
+        }
+      } catch(err){
+        console.error(err);
+        showStatus('bad', '❌ Network/Server error. Please try again.');
+      } finally{
+        extractBtn.disabled = false;
+      }
+    });
+
+    // init
+    updateCount();
+    if(!output.value.trim()){
+      clearAll();
+    } else {
+      showStatus('good', '✅ Loaded last extracted text from session.');
+    }
+  </script>
+  </body>
 </html>
