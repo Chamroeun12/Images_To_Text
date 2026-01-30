@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Image to Text (OCR)</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
     <style>
     :root{
@@ -179,12 +180,12 @@
   <body>
     <div class="wrap">
       <div class="top">
-        <div>
+        <div class>
           <h1>Image to Text (OCR)</h1>
           <p class="sub">Upload an image, choose language, and extract text —
             all on one page.</p>
         </div>
-        <div class="badge">✅ Single Page • Better UX/UI</div>
+        <!-- <div class="badge">✅ Single Page • Better UX/UI</div> -->
       </div>
 
       <div class="grid">
@@ -206,9 +207,9 @@
                   <!-- keep selected language from Flask session -->
                   <select name="lang" id="langSelect" title="OCR Language">
                     <option value="eng" {% if last_lang == 'eng' %}selected{%
-                      endif %}>🌍 English</option>
+                      endif %}>English</option>
                     <option value="khm" {% if last_lang == 'khm' %}selected{%
-                      endif %}>&#x1F1F0;&#x1F1ED; Khmer</option>
+                      endif %}>Khmer</option>
                   </select>
 
                   <button class="btn" type="button" id="clearBtn">🧹
